@@ -1,0 +1,37 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://addons/godot_colyseus/demo/chat.gd" type="Script" id=1]
+
+[node name="Control" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="input" type="TextEdit" parent="."]
+anchor_top = 0.927
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = -0.200012
+margin_right = -110.0
+
+[node name="send" type="Button" parent="."]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = -104.0
+margin_top = -42.0
+margin_right = 1.0
+margin_bottom = -4.0
+text = "Send"
+
+[node name="label" type="Label" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = -2.0
+margin_bottom = -54.0
+
+[connection signal="pressed" from="send" to="." method="_on_send_pressed"]

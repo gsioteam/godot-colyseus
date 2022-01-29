@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://addons/godot_colyseus/demo/blur.png" type="Texture" id=1]
+
+[node name="char" type="Sprite"]
+position = Vector2( 0, -16 )
+scale = Vector2( 0.6, 1 )
+texture = ExtResource( 1 )
