@@ -68,6 +68,15 @@ func _set(property, value):
 	return false
 
 # [event: String, target, key_or_index]
+# path format {path}:{action}
+# {action} is one of:
+#	add  		Create sub object, paramaters [current, new_value, key]
+#	remove		Delete sub object， paramaters [current, old_value, key]
+#	replace		Replace sub object， paramaters [current, new_value, key]
+#	delete		Current object is deleted, paramaters [current]
+#	create		Current object is created, paramaters [current]
+#	change		Current object's attributes has changed, paramaters [current]
+#	clear		Current Array or Map has cleared, paramaters [current]
 func listen(var path: String) -> EventListener:
 	if not _change_listeners.has(path):
 		_change_listeners[path] = EventListener.new()
