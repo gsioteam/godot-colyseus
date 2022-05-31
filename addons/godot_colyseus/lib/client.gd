@@ -10,7 +10,7 @@ var endpoint: String
 func _init(endpoint: String):
 	self.endpoint = endpoint
 
-func joinOrCreate(schema_type: GDScript, room_name: String, options: Dictionary = {}) -> Promise:
+func join_or_create(schema_type: GDScript, room_name: String, options: Dictionary = {}) -> Promise:
 	return RunPromise.new(
 		funcref(self, "_create_match_make_request"), 
 		["joinOrCreate", room_name, options, schema_type])
