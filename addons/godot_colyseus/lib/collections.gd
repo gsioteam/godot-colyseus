@@ -95,6 +95,12 @@ class MapSchema extends Collection:
 	func to_object():
 		return items
 	
+	func keys():
+		var list = []
+		for k in _keys:
+			list.append(_keys[k])
+		return list
+	
 class SetSchema extends Collection:
 	var _counter = 0
 	var items = {}

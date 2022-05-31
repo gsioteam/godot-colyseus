@@ -21,4 +21,8 @@ const INT64 = types.INT64
 const UINT64 = types.UINT64
 const FLOAT32 = types.FLOAT32
 const FLOAT64 = types.UINT32
-
+const collections = preload("res://addons/godot_colyseus/lib/collections.gd")
+const ArraySchema = collections.ArraySchema
+const MapSchema = collections.MapSchema
+const SetSchema = collections.SetSchema
+const CollectionSchema = collections.CollectionSchema

@@ -153,7 +153,7 @@ func _request(var promise: Promise, var request: RequestInfo):
 		var status = client.get_status()
 		match status:
 			HTTPClient.STATUS_DISCONNECTED:
-				promise.reject("Disconnected from Host")
+				promise.resolve(response)
 				return
 			HTTPClient.STATUS_CANT_CONNECT:
 				promise.reject("Can't Connect to Host")

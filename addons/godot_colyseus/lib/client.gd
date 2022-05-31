@@ -15,17 +15,17 @@ func join_or_create(schema_type: GDScript, room_name: String, options: Dictionar
 		funcref(self, "_create_match_make_request"), 
 		["joinOrCreate", room_name, options, schema_type])
 
-func create(schema_type: GDScript, room_name: String, options: Dictionary) -> Promise:
+func create(schema_type: GDScript, room_name: String, options: Dictionary = {}) -> Promise:
 	return RunPromise.new(
 		funcref(self, "_create_match_make_request"), 
 		["create", room_name, options, schema_type])
 
-func join(schema_type: GDScript, room_name: String, options: Dictionary) -> Promise:
+func join(schema_type: GDScript, room_name: String, options: Dictionary = {}) -> Promise:
 	return RunPromise.new(
 		funcref(self, "_create_match_make_request"), 
 		["join", room_name, options, schema_type])
 
-func join_by_id(schema_type: GDScript, room_id: String, options: Dictionary) -> Promise:
+func join_by_id(schema_type: GDScript, room_id: String, options: Dictionary = {}) -> Promise:
 	return RunPromise.new(
 		funcref(self, "_create_match_make_request"), 
 		["joinById", room_id, options, schema_type])

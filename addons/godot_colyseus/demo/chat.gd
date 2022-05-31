@@ -5,7 +5,7 @@ var room: colyseus.Room
 
 func _ready():
 	var client = colyseus.Client.new("ws://localhost:2567")
-	var promise = client.joinOrCreate(colyseus.Schema, "chat")
+	var promise = client.join_or_create(colyseus.Schema, "chat")
 	yield(promise, "completed")
 	if promise.get_state() == promise.State.Failed:
 		print("Failed")

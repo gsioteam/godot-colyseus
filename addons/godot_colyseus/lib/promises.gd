@@ -40,6 +40,13 @@ class Promise:
 		if _state == State.Failed:
 			return result
 		return null
+	
+	func await():
+		if _state == State.Waiting:
+			yield(self, "completed")
+		else:
+			yield(Engine.get_main_loop(), "idle_frame")
+		return self
 
 	func _to_string():
 		match _state:
