@@ -107,4 +107,4 @@ func _http_get(promise: Promise, path: String, headers: Dictionary):
 		promise.reject(resp.get_error())
 		return
 	var res: HTTP.Response = resp.get_result()
-	return res.json()
+	promise.resolve(res.json())
