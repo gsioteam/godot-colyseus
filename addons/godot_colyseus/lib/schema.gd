@@ -219,10 +219,6 @@ func decode(decoder: Decoder) -> int:
 				
 				if new != null:
 					ref_value.meta_set(field_index, key, new)
-					print("Set ", field_index, " - ", key)
-					if ref_value.has_method("keys"):
-						print(ref_value.keys())
-						print(ref_value._keys)
 					if new is SchemaInterface:
 						changes.append({
 							target = new,
