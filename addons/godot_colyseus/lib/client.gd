@@ -70,6 +70,9 @@ func _create_match_make_request(
 	var res: HTTP.Response = resp.get_result()
 	var response = res.json()
 	
+	if response.get('code') != null:
+		promise.reject(response['error'])
+		return
 	var room = CRoom.new(response["room"]["name"], schema_type)
 	room.room_id = response["room"]["roomId"]
 	room.session_id = response["sessionId"]
