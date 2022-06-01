@@ -1,7 +1,7 @@
 extends Object
 
-const EventListener = preload("./listener.gd")
-const SchemaInterface = preload("./schema_interface.gd")
+const EventListener = preload("res://addons/godot_colyseus/lib/listener.gd")
+const SchemaInterface = preload("res://addons/godot_colyseus/lib/schema_interface.gd")
 
 class Collection extends SchemaInterface:
 	var sub_type

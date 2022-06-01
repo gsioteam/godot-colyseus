@@ -1,9 +1,10 @@
 extends Reference
 
-const Promise = preload("./promises.gd").Promise;
-const RunPromise = preload("./promises.gd").RunPromise;
-const HTTP = preload("./http.gd")
-const CRoom = preload("./room.gd")
+const Promise = preload("res://addons/godot_colyseus/lib/promises.gd").Promise;
+const RunPromise = preload("res://addons/godot_colyseus/lib/promises.gd").RunPromise;
+const HTTP = preload("res://addons/godot_colyseus/lib/http.gd")
+const CRoom = preload("res://addons/godot_colyseus/lib/room.gd")
+const RoomInfo = preload("res://addons/godot_colyseus/lib/room_info.gd")
 
 var endpoint: String
 
@@ -40,7 +41,7 @@ func get_available_rooms(room_name:String) -> Promise:
 	return RunPromise.new(
 		funcref(self, "_http_get"),
 		[path, {"Accept": "application/json"}]
-	)
+	).then(funcref(self, "_process_rooms"))
 
 func _create_match_make_request(
 	promise: Promise, 
@@ -108,3 +109,9 @@ func _http_get(promise: Promise, path: String, headers: Dictionary):
 		return
 	var res: HTTP.Response = resp.get_result()
 	promise.resolve(res.json())
+
+func _process_rooms(result, promise: Promise):
+	var list = []
+	for data in result:
+		list.append(RoomInfo.new(data))
+	return list

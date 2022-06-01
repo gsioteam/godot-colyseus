@@ -56,6 +56,19 @@ class Promise:
 				return str("[Success:",result,"]")
 			State.Failed:
 				return str("[Failed:",result,"]")
+	
+	func _next(promise, callback: FuncRef, argv: Array):
+		yield(await(), "completed")
+		if _state == State.Success:
+			var arr = [get_result(), promise]
+			arr.append_array(argv)
+			var ret = callback.call_funcv(arr)
+			if ret is GDScriptFunctionState:
+				ret = yield(ret, "completed")
+			promise.resolve(ret)
+	
+	func then(var callback: FuncRef, var argv: Array = []) -> Promise:
+		return RunPromise.new(funcref(self, "_next"), [callback, argv])
 
 class FramePromise extends Promise:
 	var cb: FuncRef

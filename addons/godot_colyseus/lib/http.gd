@@ -1,6 +1,6 @@
 extends Reference
 
-const promises = preload("./promises.gd")
+const promises = preload("res://addons/godot_colyseus/lib/promises.gd")
 const Promise = promises.Promise
 const RunPromise = promises.RunPromise
 

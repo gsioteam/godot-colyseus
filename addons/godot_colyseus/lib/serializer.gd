@@ -1,9 +1,9 @@
 
 extends Reference
 
-const Schema = preload("./schema.gd")
-const Decoder = preload("./decoder.gd")
-const types = preload("./types.gd")
+const Schema = preload("res://addons/godot_colyseus/lib/schema.gd")
+const Decoder = preload("res://addons/godot_colyseus/lib/decoder.gd")
+const types = preload("res://addons/godot_colyseus/lib/types.gd")
 
 class Serializer:
 	

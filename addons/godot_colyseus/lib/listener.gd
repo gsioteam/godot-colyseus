@@ -1,6 +1,6 @@
 extends Reference
 
-const ps = preload("./promises.gd")
+const ps = preload("res://addons/godot_colyseus/lib/promises.gd")
 
 
 class Callback:

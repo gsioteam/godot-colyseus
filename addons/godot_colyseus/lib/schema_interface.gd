@@ -1,6 +1,6 @@
 extends Reference
 
-const Types = preload("./types.gd")
+const Types = preload("res://addons/godot_colyseus/lib/types.gd")
 
 class Ref:
 	var value
@@ -13,6 +13,7 @@ class Ref:
 var id
 var parent
 var parent_index: int
+var parent_key
 
 func clear(decoding: bool = false):
 	assert(false)
@@ -35,15 +36,18 @@ func meta_remove(index):
 	assert(false)
 
 func set_parent(np, pindex):
+	if parent == np and parent_index == pindex:
+		return
 	if parent != null:
 		parent.meta_remove(parent_index)
 	parent = np
 	parent_index = pindex
+	parent_key = parent.meta_get_key(parent_index)
 
 func trigger(event: String, argv = [], path: PoolStringArray = [], target = self):
 	if parent == null:
 		return
-	path.append(parent.meta_get_key(parent_index))
+	path.append(parent_key)
 	parent.trigger(event, argv, path, target)
 
 func to_object():

@@ -1,8 +1,8 @@
 extends Object
 
-const Decoder = preload("./decoder.gd")
-const types = preload("./types.gd")
-const collections = preload("./collections.gd")
+const Decoder = preload("res://addons/godot_colyseus/lib/decoder.gd")
+const types = preload("res://addons/godot_colyseus/lib/types.gd")
+const collections = preload("res://addons/godot_colyseus/lib/collections.gd")
 
 var type: String
 var sub_type

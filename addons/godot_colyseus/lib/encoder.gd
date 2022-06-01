@@ -1,6 +1,6 @@
 extends Reference
 
-const MsgPack = preload("./msgpack.gd")
+const MsgPack = preload("res://addons/godot_colyseus/lib/msgpack.gd")
 
 var writer: StreamPeerBuffer
 

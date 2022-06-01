@@ -1,11 +1,11 @@
 extends Reference
 
-const FrameRunner = preload("./frame_runner.gd")
-const EventListener = preload("./listener.gd")
-const ser = preload("./serializer.gd")
-const Decoder = preload("./decoder.gd")
-const Encoder = preload("./encoder.gd")
-const MsgPack = preload("./msgpack.gd")
+const FrameRunner = preload("res://addons/godot_colyseus/lib/frame_runner.gd")
+const EventListener = preload("res://addons/godot_colyseus/lib/listener.gd")
+const ser = preload("res://addons/godot_colyseus/lib/serializer.gd")
+const Decoder = preload("res://addons/godot_colyseus/lib/decoder.gd")
+const Encoder = preload("res://addons/godot_colyseus/lib/encoder.gd")
+const MsgPack = preload("res://addons/godot_colyseus/lib/msgpack.gd")
 
 const CODE_HANDSHAKE = 9
 const CODE_JOIN_ROOM = 10

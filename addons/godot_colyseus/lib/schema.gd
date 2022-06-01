@@ -1,19 +1,19 @@
 extends "./schema_interface.gd"
 
-const col = preload("./collections.gd")
-const OP = preload("./operations.gd")
-const TypeInfo = preload("./type_info.gd")
+const col = preload("res://addons/godot_colyseus/lib/collections.gd")
+const OP = preload("res://addons/godot_colyseus/lib/operations.gd")
+const TypeInfo = preload("res://addons/godot_colyseus/lib/type_info.gd")
 
 const END_OF_STRUCTURE = 0xc1
 const NIL = 0xc0
 const INDEX_CHANGE = 0xd4
 
-const Decoder = preload("./decoder.gd")
-const EventListener = preload("./listener.gd")
-const SchemaInterface = preload("./schema_interface.gd")
+const Decoder = preload("res://addons/godot_colyseus/lib/decoder.gd")
+const EventListener = preload("res://addons/godot_colyseus/lib/listener.gd")
+const SchemaInterface = preload("res://addons/godot_colyseus/lib/schema_interface.gd")
 
 class Field:
-	const types = preload("./types.gd")
+	const types = preload("res://addons/godot_colyseus/lib/types.gd")
 	var index: int
 	var name: String
 	var value
@@ -218,6 +218,11 @@ func decode(decoder: Decoder) -> int:
 						_refs.erase(old.id)
 				
 				if new != null:
+					ref_value.meta_set(field_index, key, new)
+					print("Set ", field_index, " - ", key)
+					if ref_value.has_method("keys"):
+						print(ref_value.keys())
+						print(ref_value._keys)
 					if new is SchemaInterface:
 						changes.append({
 							target = new,
@@ -225,7 +230,6 @@ func decode(decoder: Decoder) -> int:
 							argv = []
 						})
 						new.set_parent(ref_value, field_index)
-					ref_value.meta_set(field_index, key, new)
 				elif old != null:
 					ref_value.meta_remove(field_index)
 				

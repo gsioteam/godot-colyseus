@@ -1,9 +1,9 @@
 extends Object
 
-const Client = preload("./client.gd")
-const Schema = preload("./schema.gd")
-const Room = preload("./room.gd")
-const types = preload("./types.gd")
+const Client = preload("res://addons/godot_colyseus/lib/client.gd")
+const Schema = preload("res://addons/godot_colyseus/lib/schema.gd")
+const Room = preload("res://addons/godot_colyseus/lib/room.gd")
+const types = preload("res://addons/godot_colyseus/lib/types.gd")
 const Field = Schema.Field
 const REF = types.REF
 const MAP = types.MAP
@@ -26,3 +26,7 @@ const ArraySchema = collections.ArraySchema
 const MapSchema = collections.MapSchema
 const SetSchema = collections.SetSchema
 const CollectionSchema = collections.CollectionSchema
+
+const RoomInfo = preload("res://addons/godot_colyseus/lib/room_info.gd")
+
+const Promise = preload("res://addons/godot_colyseus/lib/promises.gd").Promise
