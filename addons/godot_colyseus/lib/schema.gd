@@ -153,7 +153,7 @@ func decode(decoder: Decoder) -> int:
 				changes.append({
 					target = ref.value,
 					event = "clear",
-					key = null
+					argv = []
 				})
 			continue
 		
