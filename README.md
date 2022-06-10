@@ -8,7 +8,7 @@ Try the online mode of this demo: [https://gsioteam.github.io/ActionGame/](https
 
 ```py
 var client = colyseus.Client.new("ws://localhost:2567")
-var promise = client.joinOrCreate(RoomState, "state_handler")
+var promise = client.join_or_create(RoomState, "state_handler")
 yield(promise, "completed")
 if promise.get_state() == promise.State.Failed:
     print("Failed")
