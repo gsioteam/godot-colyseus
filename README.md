@@ -38,7 +38,7 @@ class RoomState extends colyseus.Schema:
     ]
 ```
 
-Get players by `state.players`. And the collection classes is 
+Get players by `state.players`. And the collection classes are 
 defined in `godot_colyseus/lib/collections.gd`.
 
 ### Event Listener
