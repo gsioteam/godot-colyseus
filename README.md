@@ -52,9 +52,9 @@ Actions:
 
 | Action      | Description | Arguments   |
 | ----------- | ----------- | ----------- |
-| add | A subobject is created or added to this schema object. | _on_add(current: Schema, new_value: any, key: String) |
-| remove | A subobject is removed from this schema object. | _on_remove(current: Schema, old_value: any, key: String) |
-| replace | A attrbite or element of this schema object is replaced. | _on_replace(current: Schema, new_value: any, key: String) |
+| add | A attrbite or element of this schema object is created or added. | _on_add(current: Schema, new_value: any, key: String\int) |
+| remove | A attrbite or element of this schema object is removed. | _on_remove(current: Schema, old_value: any, key: String\int) |
+| replace | A attrbite or element of this schema object is replaced. | _on_replace(current: Schema, new_value: any, key: String\int) |
 | delete | The schema object which at the path is deleted. | _on_deleted(current: Schema) |
 | create | The schema object which at the path is created. | _on_created(current: Schema) |
 | change | The schema object which at the path is changed. | _on_changed(current: Schema) |
