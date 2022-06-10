@@ -32,10 +32,10 @@ and implement the `define_fields` method.
 
 ```py
 class RoomState extends colyseus.Schema:
-	static func define_fields():
-		return [
-			colyseus.Field.new("players", colyseus.MAP, Player),
-		]
+  static func define_fields():
+    return [
+      colyseus.Field.new("players", colyseus.MAP, Player),
+    ]
 ```
 
 Get players map by `state.players`. And the collection classes is 
