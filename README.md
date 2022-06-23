@@ -43,7 +43,7 @@ defined in `godot_colyseus/lib/collections.gd`.
 
 ### Event Listener
 
-Using `listen` method to observe the change of attrbites.
+Use `listen` method to observe the change of attrbites.
 The structure of first argument `path` is like this
 `path/to/attribue:action`. The path part can be empty like
 `:replace`, that means listening this node.
