@@ -1,9 +1,9 @@
 
-extends Reference
+extends RefCounted
 
 const Schema = preload("res://addons/godot_colyseus/lib/schema.gd")
 const Decoder = preload("res://addons/godot_colyseus/lib/decoder.gd")
-const types = preload("res://addons/godot_colyseus/lib/types.gd")
+const Types = preload("res://addons/godot_colyseus/lib/types.gd")
 
 class Serializer:
 	
@@ -86,7 +86,7 @@ class SchemaSerializer extends Serializer:
 	func handshake(decoder):
 		var reflection = Reflection.new()
 		reflection.decode(decoder)
-		assert(reflection.test(schema_type), "Can not detect schema type")
+		assert(reflection.test(schema_type)) #,"Can not detect schema type")
 	
 	func set_state(decoder):
 		state.decode(decoder)

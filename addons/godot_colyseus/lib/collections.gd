@@ -28,7 +28,7 @@ class ArraySchema extends Collection:
 
 	func meta_remove(index):
 		assert(items.size() > index)
-		items.remove(index)
+		items.remove_at(index)
 	
 	func _set_item(index, value):
 		if items.size() > index:
@@ -48,7 +48,7 @@ class ArraySchema extends Collection:
 		return items.size()
 	
 	func _to_string():
-		return JSON.print(items)
+		return JSON.stringify(items)
 	
 	func to_object():
 		return items
@@ -77,7 +77,7 @@ class MapSchema extends Collection:
 
 	func meta_remove(index):
 		if not _keys.has(index):
-			 return;
+			return
 		items.erase(_keys[index])
 		_keys.erase(index)
 	
@@ -90,7 +90,7 @@ class MapSchema extends Collection:
 		++_counter
 	
 	func _to_string():
-		return JSON.print(items)
+		return JSON.stringify(items)
 	
 	func to_object():
 		return items
@@ -132,7 +132,7 @@ class SetSchema extends Collection:
 			items.append(value)
 			
 	func _to_string():
-		return JSON.print(items)
+		return JSON.stringify(items)
 	
 	func to_object():
 		return items
@@ -166,7 +166,7 @@ class CollectionSchema extends Collection:
 			items.append(value)
 	
 	func _to_string():
-		return JSON.print(items)
+		return JSON.stringify(items)
 	
 	func to_object():
 		return items

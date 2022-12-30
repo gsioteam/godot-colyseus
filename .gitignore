@@ -1,3 +1,4 @@
 mono_crash.*
 *.import
 .import/
+.godot

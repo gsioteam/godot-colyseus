@@ -30,11 +30,11 @@
 #   static Dictionary encode(Variant value)
 #     Convert a value (number, string, array and dictionary) into their
 #     counterparts in messagepack. Returns dictionary with three fields:
-#     `result` which is the packed data (a PoolByteArray); `error` which is the
+#     `result` which is the packed data (a PackedByteArray); `error` which is the
 #     error code; and `error_string` which is a human readable error message
 #
-#   static Dictionary decode(PoolByteArray bytes)
-#     Convert a packed data (a PoolByteArray) into a value, the reverse of the
+#   static Dictionary decode(PackedByteArray bytes)
+#     Convert a packed data (a PackedByteArray) into a value, the reverse of the
 #     encode function. The return value is similar to the one in the encode
 #     method
 
@@ -51,7 +51,7 @@ static func encode(value, buffer: StreamPeerBuffer):
 		}
 	else:
 		return {
-			result = PoolByteArray(),
+			result = PackedByteArray(),
 			error = ctx.error,
 			error_string = ctx.error_string,
 		}
@@ -98,12 +98,12 @@ static func _encode(buf, value, ctx):
 				buf.put_u8(0xd3)
 				buf.put_64(value)
 
-		TYPE_REAL:
+		TYPE_FLOAT:
 			buf.put_u8(0xca)
 			buf.put_float(value)
 
 		TYPE_STRING:
-			var bytes = value.to_utf8()
+			var bytes = value.to_utf8_buffer()
 
 			var size = bytes.size()
 			if size <= (1 << 5) - 1:
@@ -126,7 +126,7 @@ static func _encode(buf, value, ctx):
 
 			buf.put_data(bytes)
 
-		TYPE_RAW_ARRAY:
+		TYPE_PACKED_BYTE_ARRAY:
 			var size = value.size()
 			if size <= (1 << 8) - 1:
 				buf.put_u8(0xc4)

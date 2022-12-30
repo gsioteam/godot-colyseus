@@ -1,4 +1,4 @@
-extends Reference
+extends RefCounted
 
 class Promise: 
 	enum State {
@@ -17,7 +17,7 @@ class Promise:
 	
 	func resolve(res = null):
 		if res is Promise:
-			yield(res, "completed")
+			await res.completed
 			result = res.result
 			_state = res.get_state()
 			emit_signal("completed")
@@ -31,7 +31,7 @@ class Promise:
 		_state = State.Failed
 		emit_signal("completed")
 	
-	func get_result():
+	func get_data():
 		if _state == State.Success:
 			return result
 		return null
@@ -41,11 +41,9 @@ class Promise:
 			return result
 		return null
 	
-	func await():
+	func wait():
 		if _state == State.Waiting:
-			yield(self, "completed")
-		else:
-			yield(Engine.get_main_loop(), "idle_frame")
+			await self.completed
 		return self
 
 	func _to_string():
@@ -57,24 +55,22 @@ class Promise:
 			State.Failed:
 				return str("[Failed:",result,"]")
 	
-	func _next(promise, callback: FuncRef, argv: Array):
-		yield(await(), "completed")
+	func _next(promise, callback: Callable, argv: Array):
+		await wait()
 		if _state == State.Success:
-			var arr = [get_result(), promise]
+			var arr = [get_data(), promise]
 			arr.append_array(argv)
-			var ret = callback.call_funcv(arr)
-			if ret is GDScriptFunctionState:
-				ret = yield(ret, "completed")
+			var ret = await callback.callv(arr)
 			promise.resolve(ret)
 	
-	func then(var callback: FuncRef, var argv: Array = []) -> Promise:
-		return RunPromise.new(funcref(self, "_next"), [callback, argv])
+	func then(callback: Callable, argv: Array = []) -> Promise:
+		return RunPromise.new(Callable(self, "_next"), [callback, argv])
 
 class FramePromise extends Promise:
-	var cb: FuncRef
+	var cb: Callable
 	var argv: Array
 	
-	func _init(var callback: FuncRef, var argv: Array = []):
+	func _init(callback: Callable,argv: Array = []):
 		cb = callback
 		self.argv = argv
 		_run()
@@ -83,18 +79,18 @@ class FramePromise extends Promise:
 		var root = Engine.get_main_loop()
 		while true:
 			if root is SceneTree:
-				yield(root, "idle_frame")
+				await root.process_frame
 			var arr = [self]
 			arr.append_array(argv)
-			cb.call_funcv(arr)
+			cb.callv(arr)
 			if get_state() != State.Waiting:
 				break
 
 class RunPromise extends Promise:
-	var cb: FuncRef
+	var cb: Callable
 	var argv: Array
 	
-	func _init(var callback: FuncRef, var argv: Array = []):
+	func _init(callback: Callable,argv: Array = []):
 		cb = callback
 		self.argv = argv
 		_run()
@@ -102,4 +98,4 @@ class RunPromise extends Promise:
 	func _run():
 		var arr = [self]
 		arr.append_array(argv)
-		cb.call_funcv(arr)
+		await cb.callv(arr)

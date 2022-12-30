@@ -1,4 +1,4 @@
-extends Reference
+extends RefCounted
 
 const MsgPack = preload("res://addons/godot_colyseus/lib/msgpack.gd")
 
@@ -10,7 +10,7 @@ func _init(writer: StreamPeerBuffer):
 
 func string(v: String):
 	
-	var bytes = v.to_utf8()
+	var bytes = v.to_utf8_buffer()
 	var length = bytes.size()
 	
 	if length < 0x20:
@@ -25,7 +25,7 @@ func string(v: String):
 		writer.put_u8(0xdb)
 		writer.put_u32(length)
 	else:
-		assert(false, "String too long")
+		assert(false) #,"String too long")
 	
 	writer.put_data(bytes)
 

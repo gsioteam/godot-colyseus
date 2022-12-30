@@ -1,4 +1,4 @@
-extends Reference
+extends RefCounted
 
 const FrameRunner = preload("res://addons/godot_colyseus/lib/frame_runner.gd")
 const EventListener = preload("res://addons/godot_colyseus/lib/listener.gd")
@@ -29,7 +29,7 @@ var room_name: String
 var room_id: String
 var session_id: String
 var serializer: ser.Serializer
-var ws: WebSocketClient
+var ws: WebSocketPeer
 var frame_runner: FrameRunner
 
 var schema_type: GDScript
@@ -61,18 +61,17 @@ func on_message(event: String, new_listener: bool = true) -> EventListener:
 		listener = _messages[event]
 	return listener
 
-func _init(room_name: String, schema_type: GDScript):
+func _init(room_name: String,schema_type: GDScript):
 	self.room_name = room_name
 	self.schema_type = schema_type
-	ws = WebSocketClient.new()
-	ws.connect("connection_established", self, "_connection_established")
-	ws.connect("connection_error", self, "_connection_error")
-	ws.connect("connection_closed", self, "_connection_closed")
-	ws.connect("data_received", self, "_on_data")
+	ws = WebSocketPeer.new()
+	ws.connect("connection_established",Callable(self,"_connection_established"))
+	ws.connect("connection_error",Callable(self,"_connection_error"))
+	ws.connect("connection_closed",Callable(self,"_connection_closed"))
+	ws.connect("data_received",Callable(self,"_on_data"))
 	
-	frame_runner = FrameRunner.new(funcref(self, "_on_frame"))
+	frame_runner = FrameRunner.new(Callable(self, "_on_frame"))
 	
-	pass # Replace with function body.
 
 
 func _connection_established(protocol):
@@ -85,7 +84,7 @@ func _connection_closed(was_clean: bool):
 	frame_runner.stop()
 
 func _on_data():
-	var data = ws.get_peer(1).get_packet()
+	var data = ws.get_packet()
 	var reader = StreamPeerBuffer.new()
 	reader.data_array = data
 	
@@ -138,9 +137,17 @@ func connect_remote(url: String):
 
 func _on_frame():
 	ws.poll()
+	match ws.get_ready_state():
+		WebSocketPeer.STATE_OPEN:
+			while ws.get_available_packet_count() > 0:
+				_on_data()
+		WebSocketPeer.STATE_CLOSED:
+			var code = ws.get_close_code()
+			var reason = ws.get_close_reason()
+			_connection_closed(true)
 
-func send_raw(bytes: PoolByteArray):
-	ws.get_peer(1).put_packet(bytes)
+func send_raw(bytes: PackedByteArray):
+	ws.send(bytes)
 
 func send(type, message = null):
 	var buffer = StreamPeerBuffer.new() 
@@ -159,7 +166,7 @@ func send(type, message = null):
 	send_raw(buffer.data_array)
 
 func leave(consented = true):
-	if not room_id.empty():
+	if not room_id.is_empty():
 		if consented:
 			send_raw([CODE_LEAVE_ROOM])
 		else:

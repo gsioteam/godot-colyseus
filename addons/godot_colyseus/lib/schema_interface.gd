@@ -1,4 +1,4 @@
-extends Reference
+extends RefCounted
 
 const Types = preload("res://addons/godot_colyseus/lib/types.gd")
 
@@ -6,7 +6,7 @@ class Ref:
 	var value
 	var type_info
 	
-	func _init(value, type_info):
+	func _init(value,type_info):
 		self.value = value
 		self.type_info = type_info
 
@@ -44,7 +44,7 @@ func set_parent(np, pindex):
 	parent_index = pindex
 	parent_key = parent.meta_get_key(parent_index)
 
-func trigger(event: String, argv = [], path: PoolStringArray = [], target = self):
+func trigger(event: String, argv = [], path: PackedStringArray = PackedStringArray(), target = self):
 	if parent == null:
 		return
 	path.append(parent_key)

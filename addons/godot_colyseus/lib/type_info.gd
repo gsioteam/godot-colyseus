@@ -7,7 +7,7 @@ const collections = preload("res://addons/godot_colyseus/lib/collections.gd")
 var type: String
 var sub_type
 
-func _init(type: String, sub_type = null):
+func _init(type: String,sub_type = null):
 	self.type = type
 	self.sub_type = sub_type
 
@@ -88,5 +88,5 @@ func decode(decoder: Decoder):
 		types.FLOAT64:
 			return decoder.reader.get_double()
 		_:
-			assert(true, str("Unkown support type:", type))
+			assert(true) #,str("Unkown support type:", type))
 

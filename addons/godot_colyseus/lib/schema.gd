@@ -13,21 +13,21 @@ const EventListener = preload("res://addons/godot_colyseus/lib/listener.gd")
 const SchemaInterface = preload("res://addons/godot_colyseus/lib/schema_interface.gd")
 
 class Field:
-	const types = preload("res://addons/godot_colyseus/lib/types.gd")
+	const Types = preload("res://addons/godot_colyseus/lib/types.gd")
 	var index: int
 	var name: String
 	var value
 	var current_type
 	
-	func _init(name: String, type: String, schema_type = null):
+	func _init(name: String,type: String,schema_type = null):
 		current_type = TypeInfo.new(type)
 		if schema_type is String:
 			current_type.sub_type = TypeInfo.new(schema_type)
 		elif schema_type is GDScript:
-			if type == types.REF:
+			if type == Types.REF:
 				current_type.sub_type = schema_type
 			else:
-				current_type.sub_type = TypeInfo.new(types.REF, schema_type)
+				current_type.sub_type = TypeInfo.new(Types.REF, schema_type)
 		elif schema_type is TypeInfo:
 			current_type.sub_type = schema_type
 		self.name = name
@@ -71,13 +71,13 @@ func _set(property, value):
 # path format {path}:{action}
 # {action} is one of:
 #	add  		Create sub object, paramaters [current, new_value, key]
-#	remove		Delete sub object， paramaters [current, old_value, key]
+#	remove_at		Delete sub object， paramaters [current, old_value, key]
 #	replace		Replace sub object， paramaters [current, new_value, key]
 #	delete		Current object is deleted, paramaters [current]
 #	create		Current object is created, paramaters [current]
 #	change		Current object's attributes has changed, paramaters [current]
 #	clear		Current Array or Map has cleared, paramaters [current]
-func listen(var path: String) -> EventListener:
+func listen(path: String) -> EventListener:
 	if not _change_listeners.has(path):
 		_change_listeners[path] = EventListener.new()
 	return _change_listeners[path]
@@ -98,16 +98,16 @@ func _setup_field(field: Field):
 	var type = field.current_type
 	match type.type:
 		Types.MAP:
-			assert(type.sub_type != null, "Schema type is requested")
+			assert(type.sub_type != null) #,"Schema type is requested")
 		Types.ARRAY:
-			assert(type.sub_type != null, "Schema type is requested")
+			assert(type.sub_type != null) #,"Schema type is requested")
 			field.value = col.Collection.new()
 		Types.SET:
-			assert(type.sub_type != null, "Schema type is requested")
+			assert(type.sub_type != null) #,"Schema type is requested")
 		Types.COLLECTION:
-			assert(type.sub_type != null, "Schema type is requested")
+			assert(type.sub_type != null) #,"Schema type is requested")
 		Types.REF:
-			assert(type.sub_type != null, "Schema type is requested")
+			assert(type.sub_type != null) #,"Schema type is requested")
 		Types.NUMBER, Types.FLOAT32, Types.FLOAT64:
 			field.value = 0.0
 		Types.INT8, Types.UINT8, Types.INT16, Types.UINT16, Types.INT32, Types.UINT32, Types.INT64, Types.UINT64:
@@ -134,7 +134,7 @@ func decode(decoder: Decoder) -> int:
 			
 			var next_ref = _refs[ref_id]
 			
-			assert(next_ref != null, str('"refId" not found:', ref_id))
+			assert(next_ref != null) #,str('"refId" not found:', ref_id))
 			
 			ref = next_ref
 			
@@ -198,7 +198,7 @@ func decode(decoder: Decoder) -> int:
 				elif new == null:
 					changes.append({
 						target = ref_value,
-						event = "remove",
+						event = "remove_at",
 						argv = [old, key]
 					})
 				else:
@@ -278,18 +278,18 @@ func meta_remove(index):
 
 func _to_string():
 	var obj = to_object()
-	return JSON.print(obj)
+	return JSON.stringify(obj)
 
-func trigger(event: String, argv = [], path: PoolStringArray = [], target = self):
-	var path_copy = PoolStringArray(path)
-	path_copy.invert()
-	var path_str = path_copy.join('/') + ":" + event
+func trigger(event: String, argv = [], path: PackedStringArray = PackedStringArray(), target = self):
+	var path_copy = PackedStringArray(path)
+	path_copy.reverse()
+	var path_str = '/'.join(path_copy) + ":" + event
 	if _change_listeners.has(path_str):
 		var ls: EventListener = _change_listeners[path_str]
 		argv.insert(0, target)
 		ls.emit(argv)
 	else:
-		.trigger(event, argv, path, target)
+		super.trigger(event, argv, path, target)
 
 func to_object():
 	var dic = {}

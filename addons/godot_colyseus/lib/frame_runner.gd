@@ -1,11 +1,11 @@
-extends Reference
+extends RefCounted
 
 var _running = false
-var fn: FuncRef
+var fn: Callable
 var argv: Array
 
 # Called when the node enters the scene tree for the first time.
-func _init(fn: FuncRef, argv: Array = []):
+func _init(fn: Callable,argv: Array = []):
 	self.fn = fn
 	self.argv = argv
 
@@ -14,10 +14,10 @@ func start():
 		_running = true
 		var root: SceneTree = Engine.get_main_loop()
 		while true:
-			yield(root, "idle_frame")
+			await root.process_frame
 			if not _running:
 				return
-			fn.call_funcv(argv)
+			fn.callv(argv)
 
 func stop():
 	_running = false

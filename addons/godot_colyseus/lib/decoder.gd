@@ -1,4 +1,4 @@
-extends Reference
+extends RefCounted
 
 const MsgPack = preload("res://addons/godot_colyseus/lib/msgpack.gd")
 

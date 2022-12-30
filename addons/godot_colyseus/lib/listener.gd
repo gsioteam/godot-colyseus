@@ -1,10 +1,10 @@
-extends Reference
+extends RefCounted
 
 const ps = preload("res://addons/godot_colyseus/lib/promises.gd")
 
 
 class Callback:
-	var fn: FuncRef
+	var fn: Callable
 	var args
 	var once = false
 	
@@ -12,17 +12,17 @@ class Callback:
 		var parmas = []
 		parmas.append_array(arg)
 		parmas.append_array(args)
-		fn.call_funcv(parmas)
+		fn.callv(parmas)
 
 var cbs = []
 
-func on(fn: FuncRef, args: Array = []):
+func on(fn: Callable, args: Array = []):
 	var cb = Callback.new()
 	cb.fn = fn
 	cb.args = args
 	cbs.append(cb)
 
-func off(fn: FuncRef):
+func off(fn: Callable):
 	var willremove = []
 	for cb in cbs:
 		if cb.fn == fn:
@@ -30,7 +30,7 @@ func off(fn: FuncRef):
 	for cb in willremove:
 		cbs.erase(cb)
 
-func once(fn: FuncRef, args: Array = []):
+func once(fn: Callable, args: Array = []):
 	var cb = Callback.new()
 	cb.fn = fn
 	cb.args = args
@@ -39,13 +39,13 @@ func once(fn: FuncRef, args: Array = []):
 
 func wait() -> ps.Promise:
 	var promise = ps.Promise.new()
-	once(funcref(self, "_on_event"), [promise])
+	once(Callable(self, "_on_event"), [promise])
 	return promise
 
-func _on_event(var data, promise: ps.Promise):
+func _on_event(data, promise: ps.Promise):
 	promise.resolve(data)
 
-func emit(var argv: Array = []):
+func emit(argv: Array = []):
 	var willremove = []
 	for cb in cbs:
 		cb.emit(argv)
