@@ -107,7 +107,7 @@ func _init(server: String):
 
 func _setup(promise: promises.Promise, host, port, ssl):
 	var client = HTTPClient.new()
-	var error = client.connect_to_host(host, port, ssl)
+	var error = client.connect_to_host(host, port, null)
 	if error != OK:
 		promise.reject(str("ErrorCode: ", error))
 	var root = Engine.get_main_loop()
