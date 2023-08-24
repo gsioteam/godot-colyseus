@@ -28,7 +28,7 @@ const ERROR_APPLICATION_ERROR = 4216
 var room_name: String
 var room_id: String
 var session_id: String
-var serializer: ser.Serializer
+var serializer = ser.Serializer.new()
 var ws: WebSocketPeer
 var frame_runner: FrameRunner
 
