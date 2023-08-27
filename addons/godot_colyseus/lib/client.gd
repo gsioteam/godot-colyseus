@@ -31,10 +31,18 @@ func join_by_id(schema_type: GDScript, room_id: String, options: Dictionary = {}
 		funcref(self, "_create_match_make_request"), 
 		["joinById", room_id, options, schema_type])
 
-func reconnect(schema_type: GDScript, room_id: String, session_id: String) -> Promise:
-	return RunPromise.new(
-		funcref(self, "_create_match_make_request"), 
-		["joinById", room_id, {"sessionId": session_id}, schema_type])
+func reconnect(schema_type: GDScript, reconnection_token: String) -> Promise:
+	var arr = reconnection_token.split(":")
+	if arr.size() == 2:
+		var room_id = arr[0]
+		var token = arr[1]
+		return RunPromise.new(
+			funcref(self, "_create_match_make_request"), 
+			["reconnect", room_id, {"reconnectionToken": token}, schema_type])
+	else:
+		var fail = Promise.new()
+		fail.reject("Invalidate `reconnection_token`")
+		return fail
 
 func get_available_rooms(room_name:String) -> Promise:
 	var path = "/matchmake/" + room_name
