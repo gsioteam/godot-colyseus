@@ -10,9 +10,9 @@ class Promise:
 	
 	signal completed
 	
-	var _state: int = State.Waiting
+	var _state: State = State.Waiting
 	
-	func get_state():
+	func get_state() -> State:
 		return _state
 	
 	func resolve(res = null):

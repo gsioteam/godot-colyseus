@@ -31,6 +31,7 @@ var session_id: String
 var serializer: ser.Serializer
 var ws: WebSocketPeer
 var frame_runner: FrameRunner
+var reconnection_token: String
 
 var schema_type: GDScript
 
@@ -65,12 +66,12 @@ func _init(room_name: String,schema_type: GDScript):
 	self.room_name = room_name
 	self.schema_type = schema_type
 	ws = WebSocketPeer.new()
-	ws.connect("connection_established",Callable(self,"_connection_established"))
-	ws.connect("connection_error",Callable(self,"_connection_error"))
-	ws.connect("connection_closed",Callable(self,"_connection_closed"))
-	ws.connect("data_received",Callable(self,"_on_data"))
+#	ws.connect("connection_established",Callable(self,"_connection_established"))
+#	ws.connect("connection_error",Callable(self,"_connection_error"))
+#	ws.connect("connection_closed",Callable(self,"_connection_closed"))
+#	ws.connect("data_received",Callable(self,"_on_data"))
 	
-	frame_runner = FrameRunner.new(Callable(self, "_on_frame"))
+	frame_runner = FrameRunner.new(_on_frame)
 	
 
 
@@ -92,14 +93,22 @@ func _on_data():
 	var code = reader.get_u8()
 	match code:
 		CODE_JOIN_ROOM:
+			
+			var token = reader.get_string(reader.get_u8())
+			
 			var serializer_id = reader.get_string(reader.get_u8())
 			
 			if serializer == null:
 				serializer = ser.getSerializer(serializer_id, schema_type)
 			
 			if decoder.has_more():
-				serializer.handshake(decoder)
+				if serializer:
+					serializer.handshake(decoder)
+				else:
+					on_error.emit([1, "Can not find serializer"])
+					return
 			
+			self.reconnection_token = str(room_id, ":", token)
 			_has_joined = true
 			on_join.emit()
 			send_raw([CODE_JOIN_ROOM])
@@ -132,12 +141,18 @@ func _on_data():
 			print("Receive message CODE_ROOM_DATA_SCHEMA")
 
 func connect_remote(url: String):
-	ws.connect_to_url(url)
+	var _url = url
+	if url.begins_with("http:"):
+		_url = url.replace("http:", "ws:")
+	elif url.begins_with("https:"):
+		_url = url.replace("https:", "wss:")
+	ws.connect_to_url(_url)
 	frame_runner.start()
 
 func _on_frame():
 	ws.poll()
-	match ws.get_ready_state():
+	var state = ws.get_ready_state()
+	match state:
 		WebSocketPeer.STATE_OPEN:
 			while ws.get_available_packet_count() > 0:
 				_on_data()
