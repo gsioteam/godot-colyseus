@@ -14,35 +14,43 @@ func _init(endpoint: String):
 
 func join_or_create(schema_type: GDScript, room_name: String, options: Dictionary = {}) -> Promise:
 	return RunPromise.new(
-		Callable(self, "_create_match_make_request"), 
+		_create_match_make_request, 
 		["joinOrCreate", room_name, options, schema_type])
 
 func create(schema_type: GDScript, room_name: String, options: Dictionary = {}) -> Promise:
 	return RunPromise.new(
-		Callable(self, "_create_match_make_request"), 
+		_create_match_make_request, 
 		["create", room_name, options, schema_type])
 
 func join(schema_type: GDScript, room_name: String, options: Dictionary = {}) -> Promise:
 	return RunPromise.new(
-		Callable(self, "_create_match_make_request"), 
+		_create_match_make_request, 
 		["join", room_name, options, schema_type])
 
 func join_by_id(schema_type: GDScript, room_id: String, options: Dictionary = {}) -> Promise:
 	return RunPromise.new(
-		Callable(self, "_create_match_make_request"), 
+		_create_match_make_request, 
 		["joinById", room_id, options, schema_type])
 
-func reconnect(schema_type: GDScript, room_id: String,session_id: String) -> Promise:
-	return RunPromise.new(
-		Callable(self, "_create_match_make_request"), 
-		["joinById", room_id, {"sessionId": session_id}, schema_type])
+func reconnect(schema_type: GDScript, reconnection_token: String) -> Promise:
+	var arr = reconnection_token.split(":")
+	if arr.size() == 2:
+		var room_id = arr[0]
+		var token = arr[1]
+		return RunPromise.new(
+			_create_match_make_request, 
+			["reconnect", room_id, {"reconnectionToken": token}, schema_type])
+	else:
+		var fail = Promise.new()
+		fail.reject("Invalidate `reconnection_token`")
+		return fail
 
 func get_available_rooms(room_name:String) -> Promise:
 	var path = "/matchmake/" + room_name
 	return RunPromise.new(
-		Callable(self, "_http_get"),
+		_http_get,
 		[path, {"Accept": "application/json"}]
-	).then(Callable(self, "_process_rooms"))
+	).then(_process_rooms)
 
 func _create_match_make_request(
 	promise: Promise, 

@@ -151,8 +151,7 @@ func connect_remote(url: String):
 
 func _on_frame():
 	ws.poll()
-	var state = ws.get_ready_state()
-	match state:
+	match ws.get_ready_state():
 		WebSocketPeer.STATE_OPEN:
 			while ws.get_available_packet_count() > 0:
 				_on_data()
