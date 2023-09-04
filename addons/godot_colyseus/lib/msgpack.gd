@@ -99,8 +99,8 @@ static func _encode(buf, value, ctx):
 				buf.put_64(value)
 
 		TYPE_REAL:
-			buf.put_u8(0xca)
-			buf.put_float(value)
+			buf.put_u8(0xcb)
+			buf.put_double(value)
 
 		TYPE_STRING:
 			var bytes = value.to_utf8()
