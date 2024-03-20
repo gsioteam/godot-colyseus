@@ -44,7 +44,7 @@ func set_parent(np, pindex):
 	parent_index = pindex
 	parent_key = parent.meta_get_key(parent_index)
 
-func trigger(event: String, argv = [], path: PackedStringArray = PackedStringArray(), target = self):
+func trigger(event: String, argv = [], path: PackedStringArray = PackedStringArray(), target = null):
 	if parent == null:
 		return
 	path.append(parent_key)
