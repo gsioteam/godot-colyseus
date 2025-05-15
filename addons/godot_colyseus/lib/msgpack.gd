@@ -102,7 +102,7 @@ static func _encode(buf, value, ctx):
 			buf.put_u8(0xcb)
 			buf.put_double(value)
 
-		TYPE_STRING:
+		TYPE_STRING, TYPE_STRING_NAME:
 			var bytes = value.to_utf8_buffer()
 
 			var size = bytes.size()
