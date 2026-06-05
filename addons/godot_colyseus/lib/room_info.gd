@@ -1,4 +1,4 @@
-extends Reference
+extends RefCounted
 
 var clients: int
 var created_at: String

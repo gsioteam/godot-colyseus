@@ -27,15 +27,15 @@ var room: colyseus.Room
 func _ready():
 	var client = colyseus.Client.new("ws://localhost:2567")
 	var promise = client.join_or_create(RoomState, "state_handler")
-	yield(promise, "completed")
+	await promise.completed
 	if promise.get_state() == promise.State.Failed:
 		print("Failed")
 		return
-	var room: colyseus.Room = promise.get_result()
+	var room: colyseus.Room = promise.get_data()
 	var state: RoomState = room.get_state()
-	state.listen('players:add').on(funcref(self, "_on_players_add"))
-	room.on_state_change.on(funcref(self, "_on_state"))
-	room.on_message("hello").on(funcref(self, "_on_message"))
+	state.listen('players:add').on(Callable(self, "_on_players_add"))
+	room.on_state_change.on(Callable(self, "_on_state"))
+	room.on_message("hello").on(Callable(self, "_on_message"))
 	self.room = room
 	
 func _on_message(data):
@@ -46,11 +46,11 @@ func _on_state(state):
 
 func _on_players_add(target, value, key):
 	print("Add:", " key:", key, " ", value)
-	var ch = Char.instance()
+	var ch = Char.instantiate()
 	ch.position = Vector2(value.x, value.y)
 	add_child(ch)
 	value.node = ch
-	value.listen(":change").on(funcref(self, "_on_player"))
+	value.listen(":change").on(Callable(self, "_on_player"))
 
 func _on_player(target):
 	print("Change ", target)

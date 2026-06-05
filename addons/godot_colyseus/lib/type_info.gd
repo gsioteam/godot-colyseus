@@ -7,12 +7,18 @@ const collections = preload("res://addons/godot_colyseus/lib/collections.gd")
 var type: String
 var sub_type
 
-func _init(type: String, sub_type = null):
+func _init(type: String,sub_type = null):
 	self.type = type
 	self.sub_type = sub_type
 
 func is_schema_type():
 	return type == types.REF or type == types.MAP or type == types.ARRAY or type == types.COLLECTION or type == types.SET
+
+func _to_string():
+	var ret = type
+	if sub_type and sub_type.type != types.REF:
+		ret = str(ret, ':', sub_type.type)
+	return ret
 
 func create():
 	match type:
@@ -88,5 +94,4 @@ func decode(decoder: Decoder):
 		types.FLOAT64:
 			return decoder.reader.get_double()
 		_:
-			assert(true, str("Unkown support type:", type))
-
+			assert(true) #,str("Unkown support type:", type))

@@ -1,4 +1,4 @@
-extends Reference
+extends RefCounted
 
 const promises = preload("res://addons/godot_colyseus/lib/promises.gd")
 const Promise = promises.Promise
@@ -10,14 +10,14 @@ var _client_promise: promises.Promise
 class RequestInfo:
 	var method: String = "GET"
 	var path: String = "/"
-	var headers: PoolStringArray = []
+	var headers: PackedStringArray = []
 	var body
 	
-	func _init(method: String = "GET", path: String = "/"):
+	func _init(method: String = "GET",path: String = "/"):
 		self.method = method
 		self.path = path
 	
-	func add_header(var key: String, var value):
+	func add_header(key: String, value):
 		headers.append(str(key, ": ", value))
 		return self
 
@@ -40,7 +40,7 @@ class RequestInfo:
 		if body == null:
 			body = ""
 		if body is Dictionary or body is Array:
-			body = JSON.print(body)
+			body = JSON.stringify(body)
 		return body
 
 class Response:
@@ -52,9 +52,9 @@ class Response:
 	var _content_length: int = 0
 	var _headers
 	
-	func body() -> PoolByteArray:
+	func body() -> PackedByteArray:
 		if _body == null:
-			_body = PoolByteArray()
+			_body = PackedByteArray()
 			for chunk in _response_chunks:
 				_body.append_array(chunk)
 		return _body
@@ -63,10 +63,11 @@ class Response:
 		return body().get_string_from_utf8()
 	
 	func json():
-		var result = JSON.parse(text())
-		if result.error == OK:
-			return result.result
-		print(str(result.error_string, ":", result.error_line))
+		var test_json_conv = JSON.new()
+		var err = test_json_conv.parse(text())
+		if err == OK:
+			return test_json_conv.get_data()
+		print(str(test_json_conv.get_error_message(), ":", test_json_conv.get_error_line()))
 		return null
 		
 	func headers() -> Dictionary:
@@ -79,7 +80,7 @@ class Response:
 		return _content_length
 		
 	func _to_string():
-		var lines = PoolStringArray()
+		var lines = PackedStringArray()
 		lines.append(str("StatusCode: ", status_code()))
 		lines.append(str("ContentLength: ", content_length()))
 		lines.append(str("Headers: "))
@@ -87,14 +88,18 @@ class Response:
 		for key in header.keys():
 			lines.append(str("  ", key, ": ", header[key]))
 		lines.append(str("Body: [", body().size(), "]"))
-		return lines.join("\n")
+		return "\n".join(lines)
 
 var _old_status
 
-func _init(var server: String):
+func _init(server: String):
+	var url = parseUrl(server)
+	_client_promise = promises.RunPromise.new(Callable(self, "_setup"), [url.host, url.port, url.ssl]);
+
+static func parseUrl(url) -> Dictionary:
 	var regex = RegEx.new()
 	regex.compile("(\\w+):\\/\\/([^\\/:]+)(:(\\d+))?")
-	var result = regex.search(server)
+	var result = regex.search(url)
 	var scheme = result.get_string(1)
 	var ssl = scheme == "https"
 	var host = result.get_string(2)
@@ -102,16 +107,22 @@ func _init(var server: String):
 	var port = -1
 	if portstr != "":
 		port = int(portstr)
-	_client_promise = promises.RunPromise.new(funcref(self, "_setup"), [host, port, ssl]);
+	return {
+		"host": host,
+		"ssl": ssl,
+		"port": port,
+	}
 
-func _setup(var promise: promises.Promise, host, port, ssl):
+var host: String
+func _setup(promise: promises.Promise, host, port, ssl):
 	var client = HTTPClient.new()
-	var error = client.connect_to_host(host, port, ssl)
+	self.host = host
+	var error = client.connect_to_host(host, port, TLSOptions.client() if ssl else null)
 	if error != OK:
 		promise.reject(str("ErrorCode: ", error))
 	var root = Engine.get_main_loop()
 	while true:
-		yield(root, "idle_frame")
+		await root.process_frame
 		client.poll()
 		var status = client.get_status()
 		
@@ -126,18 +137,18 @@ func _setup(var promise: promises.Promise, host, port, ssl):
 				promise.reject("Can't Connect to Host")
 				break
 
-func _request(var promise: Promise, var request: RequestInfo):
+func _request(promise: Promise, request: RequestInfo):
 	if _client_promise.get_state() == promises.Promise.State.Waiting:
-		yield(_client_promise, "completed")
+		await _client_promise.completed
 	if _client_promise.get_state() == Promise.State.Failed:
 		promise.reject(_client_promise.get_error())
 		return
-	var client: HTTPClient = _client_promise.get_result()
+	var client: HTTPClient = _client_promise.get_data()
 	var body = request.get_body()
 	var error
 	if body is String:
 		error = client.request(request.http_method(), request.path, request.headers, body)
-	elif body is PoolByteArray:
+	elif body is PackedByteArray:
 		error = client.request_raw(request.http_method(), request.path, request.headers, body)
 	else:
 		promise.reject("Unsupport body type")
@@ -148,7 +159,7 @@ func _request(var promise: Promise, var request: RequestInfo):
 	var root = Engine.get_main_loop()
 	var response = Response.new()
 	while true:
-		yield(root, "idle_frame")
+		await root.process_frame
 		error = client.poll()
 		var status = client.get_status()
 		match status:
@@ -171,7 +182,7 @@ func _request(var promise: Promise, var request: RequestInfo):
 					response._content_length = client.get_response_body_length()
 					response._headers = client.get_response_headers_as_dictionary()
 				var chunk = client.read_response_body_chunk()
-				if chunk.empty():
+				if chunk.is_empty():
 					continue
 				response._response_chunks.append(chunk)
 			HTTPClient.STATUS_CONNECTED:
@@ -179,11 +190,40 @@ func _request(var promise: Promise, var request: RequestInfo):
 				return 
 	pass
 
-func fetch(var request = null) -> Promise:
+func _resolve(promise: Promise, request: RequestInfo, response: Response):
+	if response.status_code() == 301:
+		var new_request = RequestInfo.new(request.method, request.path)
+		new_request.headers = request.headers
+		new_request.body = request.body
+		
+		var path: String = response.headers()["Location"]
+		if path.begins_with("http://") or path.begins_with("https://"):
+			var idx = path.find('/', 8)
+			var host
+			if idx >= 0:
+				host = path.substr(0, idx)
+				path = path.substr(idx)
+			else:
+				host = path
+				path = '/'
+			var url = parseUrl(host)
+			if url.host != self.host:
+				printerr("Cannot connect to new host ", host, self.host)
+				promise.resolve(response)
+				return
+		else:
+			new_request.path = path
+		
+		promise.resolve(fetch(new_request))
+		pass
+	else:
+		promise.resolve(response)
+
+func fetch(request = null) -> Promise:
 	if request == null:
 		request = RequestInfo.new()
 	elif request is String:
 		var path = request
 		request = RequestInfo.new()
 		request.path = path
-	return RunPromise.new(funcref(self, "_request"), [request])
+	return RunPromise.new(_request, [request])

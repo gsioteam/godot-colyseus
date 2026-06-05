@@ -1,9 +1,10 @@
 
-extends Reference
+extends RefCounted
 
 const Schema = preload("res://addons/godot_colyseus/lib/schema.gd")
 const Decoder = preload("res://addons/godot_colyseus/lib/decoder.gd")
-const types = preload("res://addons/godot_colyseus/lib/types.gd")
+const Types = preload("res://addons/godot_colyseus/lib/types.gd")
+const TypeInfo = preload("res://addons/godot_colyseus/lib/type_info.gd")
 
 class Serializer:
 	
@@ -36,11 +37,27 @@ class ReflectionField extends Schema:
 		]
 	
 	func test(field, reflection: Reflection) -> bool:
-		if self.type != field.current_type.type or self.name != field.name:
+		if self.type != field.current_type.to_string() or self.name != field.name:
+			var str1 = str(field.name, '-', self.name)
+			var str2 = str(field.current_type, '-', self.type)
+			printerr("Field not match ", str1, " : ", str2)
 			return false
-		if self.type == Schema.Types.REF:
+		var base_type = self.type.split(":")[0]
+		var uses_referenced_schema = base_type == Schema.Types.REF or (self.type.find(":") == -1 and (
+			base_type == Schema.Types.MAP or
+			base_type == Schema.Types.ARRAY or
+			base_type == Schema.Types.SET or
+			base_type == Schema.Types.COLLECTION
+		))
+		if uses_referenced_schema and self.referenced_type != null and self.referenced_type >= 0:
+			var schema_type = field.current_type.sub_type
+			if schema_type != null and schema_type is TypeInfo:
+				schema_type = schema_type.sub_type
+			if schema_type == null:
+				printerr("Missing referenced schema type for field ", self.name)
+				return false
 			var type = reflection.types.at(self.referenced_type)
-			return type.test(field.schema_type, reflection)
+			return type.test(schema_type, reflection)
 		return true
 
 class ReflectionType extends Schema:
@@ -48,15 +65,18 @@ class ReflectionType extends Schema:
 	static func define_fields():
 		return [
 			Schema.Field.new("id", Schema.Types.NUMBER),
+			Schema.Field.new("extendsId", Schema.Types.NUMBER),
 			Schema.Field.new("fields", Schema.Types.ARRAY, ReflectionField),
 		]
 	
 	func test(schema_type, reflection: Reflection) -> bool:
 		if not schema_type is GDScript:
+			printerr("Type schema_type not match ", self.id)
 			return false
 		var fields = schema_type.define_fields()
 		var length = fields.size()
 		if length != self.fields.size():
+			printerr("Type fields count not match ", self.id)
 			return false
 		for i in range(length):
 			var field = self.fields.at(i)
@@ -86,7 +106,7 @@ class SchemaSerializer extends Serializer:
 	func handshake(decoder):
 		var reflection = Reflection.new()
 		reflection.decode(decoder)
-		assert(reflection.test(schema_type), "Can not detect schema type")
+		assert(reflection.test(schema_type),"Can not detect schema type")
 	
 	func set_state(decoder):
 		state.decode(decoder)

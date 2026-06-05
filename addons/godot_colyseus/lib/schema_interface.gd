@@ -1,12 +1,13 @@
-extends Reference
+extends RefCounted
 
 const Types = preload("res://addons/godot_colyseus/lib/types.gd")
+const SI_OP = preload("res://addons/godot_colyseus/lib/operations.gd")
 
 class Ref:
 	var value
 	var type_info
 	
-	func _init(value, type_info):
+	func _init(value,type_info):
 		self.value = value
 		self.type_info = type_info
 
@@ -28,7 +29,7 @@ func meta_get_key(index) -> String:
 func meta_get_subtype(index):
 	assert(false)
 
-func meta_set(index, key, value):
+func meta_set(index, key, value, operation = SI_OP.REPLACE):
 	assert(false)
 	return null
 
@@ -44,11 +45,11 @@ func set_parent(np, pindex):
 	parent_index = pindex
 	parent_key = parent.meta_get_key(parent_index)
 
-func trigger(event: String, argv = [], path: PoolStringArray = [], target = self):
+func trigger(event: String, argv: Array = [], path: PackedStringArray = PackedStringArray(), target: Object = self):
 	if parent == null:
 		return
 	path.append(parent_key)
 	parent.trigger(event, argv, path, target)
 
 func to_object():
-	assert(false)
+	return "<null>"

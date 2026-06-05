@@ -34,7 +34,7 @@ static func to_gd_type(type: String) -> int:
 		STRING:
 			return TYPE_STRING
 		NUMBER, FLOAT32, FLOAT64:
-			return TYPE_REAL
+			return TYPE_FLOAT
 		BOOLEAN:
 			return TYPE_BOOL
 		INT8, UINT8, INT16, UINT16, INT32, UINT32, INT64, UINT64:

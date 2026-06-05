@@ -1,7 +1,8 @@
-extends Reference
+extends RefCounted
 
-const Promise = preload("res://addons/godot_colyseus/lib/promises.gd").Promise;
-const RunPromise = preload("res://addons/godot_colyseus/lib/promises.gd").RunPromise;
+const promises = preload("res://addons/godot_colyseus/lib/promises.gd")
+const Promise = promises.Promise;
+const RunPromise = promises.RunPromise;
 const HTTP = preload("res://addons/godot_colyseus/lib/http.gd")
 const CRoom = preload("res://addons/godot_colyseus/lib/room.gd")
 const RoomInfo = preload("res://addons/godot_colyseus/lib/room_info.gd")
@@ -13,31 +14,33 @@ func _init(endpoint: String):
 
 func join_or_create(schema_type: GDScript, room_name: String, options: Dictionary = {}) -> Promise:
 	return RunPromise.new(
-		funcref(self, "_create_match_make_request"), 
+		_create_match_make_request,
 		["joinOrCreate", room_name, options, schema_type])
 
 func create(schema_type: GDScript, room_name: String, options: Dictionary = {}) -> Promise:
 	return RunPromise.new(
-		funcref(self, "_create_match_make_request"), 
+		_create_match_make_request,
 		["create", room_name, options, schema_type])
 
 func join(schema_type: GDScript, room_name: String, options: Dictionary = {}) -> Promise:
 	return RunPromise.new(
-		funcref(self, "_create_match_make_request"), 
+		_create_match_make_request,
 		["join", room_name, options, schema_type])
 
 func join_by_id(schema_type: GDScript, room_id: String, options: Dictionary = {}) -> Promise:
 	return RunPromise.new(
-		funcref(self, "_create_match_make_request"), 
+		_create_match_make_request,
 		["joinById", room_id, options, schema_type])
 
-func reconnect(schema_type: GDScript, reconnection_token: String) -> Promise:
+func reconnect(schema_type: GDScript, reconnection_token: String, session_id: String = "") -> Promise:
+	if not session_id.is_empty():
+		reconnection_token = reconnection_token + ":" + session_id
 	var arr = reconnection_token.split(":")
 	if arr.size() == 2:
 		var room_id = arr[0]
 		var token = arr[1]
 		return RunPromise.new(
-			funcref(self, "_create_match_make_request"), 
+			_create_match_make_request,
 			["reconnect", room_id, {"reconnectionToken": token}, schema_type])
 	else:
 		var fail = Promise.new()
@@ -47,9 +50,9 @@ func reconnect(schema_type: GDScript, reconnection_token: String) -> Promise:
 func get_available_rooms(room_name:String) -> Promise:
 	var path = "/matchmake/" + room_name
 	return RunPromise.new(
-		funcref(self, "_http_get"),
+		_http_get,
 		[path, {"Accept": "application/json"}]
-	).then(funcref(self, "_process_rooms"))
+	).then(_process_rooms)
 
 func _create_match_make_request(
 	promise: Promise, 
@@ -71,37 +74,41 @@ func _create_match_make_request(
 	var resp = http.fetch(req)
 	
 	if resp.get_state() == Promise.State.Waiting:
-		yield(resp, "completed")
+		await resp.completed
 	if resp.get_state() == Promise.State.Failed:
 		promise.reject(resp.get_error())
 		return
-	var res: HTTP.Response = resp.get_result()
+	var res: HTTP.Response = resp.get_data()
 	var response = res.json()
+	if response == null:
+		promise.reject("Server unreadable!")
+		return
 	
 	if response.get('code') != null:
 		promise.reject(response['error'])
 		return
-	var room = CRoom.new(response["room"]["name"], schema_type)
-	room.room_id = response["room"]["roomId"]
+	var room_data = response.get("room", response)
+	var room = CRoom.new(room_data["name"], schema_type)
+	room.room_id = room_data["roomId"]
 	room.session_id = response["sessionId"]
 	
-	room.connect_remote(_build_endpoint(response["room"], { "sessionId": room.session_id }))
+	room.connect_remote(_build_endpoint(room_data, { "sessionId": room.session_id }))
 	
-	room.on_join.once(funcref(self, "_room_joined"), [promise, room])
-	room.on_error.once(funcref(self, "_room_error"), [promise, room])
+	room.on_join.once(Callable(self, "_room_joined"), [promise, room])
+	room.on_error.once(Callable(self, "_room_error"), [promise, room])
 
 func _room_joined(promise: Promise, room: CRoom):
-	room.on_error.off(funcref(self, "_room_error"))
+	room.on_error.off(Callable(self, "_room_error"))
 	promise.resolve(room)
 
 func _room_error(code: int, message: String, promise: Promise, room: CRoom):
 	promise.reject(str("[", code, "]", message))
 
 func _build_endpoint(room: Dictionary, options: Dictionary = {}):
-	var params = PoolStringArray()
+	var params = PackedStringArray()
 	for name in options.keys():
 		params.append(name + "=" + options[name])
-	return endpoint + "/" + room["processId"] + "/" + room["roomId"] + "?" + params.join("&")
+	return endpoint + "/" + room["processId"] + "/" + room["roomId"] + "?" + "&".join(params)
 
 func _http_get(promise: Promise, path: String, headers: Dictionary):
 	var server = endpoint
@@ -114,11 +121,11 @@ func _http_get(promise: Promise, path: String, headers: Dictionary):
 	var resp = http.fetch(req)
 	
 	if resp.get_state() == Promise.State.Waiting:
-		yield(resp, "completed")
+		await resp.completed
 	if resp.get_state() == Promise.State.Failed:
 		promise.reject(resp.get_error())
 		return
-	var res: HTTP.Response = resp.get_result()
+	var res: HTTP.Response = resp.get_data()
 	promise.resolve(res.json())
 
 func _process_rooms(result, promise: Promise):

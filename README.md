@@ -2,6 +2,12 @@
 
 Colyseus SDK for GODOT.
 
+## Compatibility
+
+This fork maintains compatibility with **Godot 4.6** and **Colyseus 0.17**.
+
+Use the `4.6` branch if you are looking for a Godot Colyseus client compatible with newer Godot 4.6 projects and Colyseus 0.17 servers.
+
 Try the online mode of this demo: [https://gsioteam.github.io/ActionGame/](https://gsioteam.github.io/ActionGame/)
 
 ## Usage 
@@ -59,4 +65,3 @@ Actions:
 | create | The schema object which at the path is created. | _on_created(current: Schema) |
 | change | The schema object which at the path is changed. | _on_changed(current: Schema) |
 | clear | The schema object which at the path is cleared. | _on_clear(current: Schema) |
-
